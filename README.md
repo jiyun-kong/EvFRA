@@ -8,7 +8,7 @@
 
 <img src="figure/overview.png" width="100%">
 
-EvFRA synthesizes a target RGB frame from an anchor frame and the events recorded after it, without optical flow.
+EvFRA synthesizes a target RGB frame from an anchor frame and the events recorded after it.
 It is built on the correspondence between the events captured between two frames and the residual between those frames.
 
 - **Stage 1: ER-VAE (Event-to-Residual Alignment VAE).** The Stable Diffusion 2.1 VAE encoder is fine-tuned so that the
@@ -32,7 +32,7 @@ with weights inversely proportional to their temporal distance.
 Download repository:
 
 ```bash
-    $ git clone https://github.com/<ORG>/EvFRA
+    $ git clone https://github.com/jiyun-kong/EvFRA
     $ cd EvFRA
 ```
 
@@ -57,7 +57,7 @@ If Stable Diffusion 2.1 is not available from the Hub in your environment, pass 
 * **HS-ERGB**: download from the official [TimeLens repository](https://github.com/uzh-rpg/rpg_timelens).
 * **GoPro**: download "GoPro with raw events" from the [EFNet repository](https://github.com/AHupuJR/EFNet)
   (Event-based Fusion for Motion Deblurring with Cross-modal Attention, ECCV'22).
-  
+
 Place the datasets in `./data` with the following structure.
 The events between frame `i` and frame `i+1` are stored in `i.npz`.
 
@@ -193,4 +193,4 @@ This code builds on [diffusers](https://github.com/huggingface/diffusers) and
 The ControlNet implementation is adapted from diffusers (Apache-2.0).
 
 ## License
-The project codes can be used for research and education only.
+This project is released under the [MIT License](LICENSE).
