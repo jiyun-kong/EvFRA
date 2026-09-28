@@ -49,7 +49,7 @@ EvFRA uses [Stable Diffusion 2.1](https://huggingface.co/stabilityai/stable-diff
 If Stable Diffusion 2.1 is not available from the Hub in your environment, pass a local copy in diffusers format
 (with `vae/` and `unet/` subfolders) through `--pretrained_model_name_or_path`.
 
-## 🚀 Quick Test
+## 🚀 Preparation
 
 ### 1. Download datasets
 
@@ -95,7 +95,7 @@ Events are converted on the fly into a 10-level multi-scale event stack (`evfra/
 ** Cautions:
 * The x, y coordinates of the raw BS-ERGB event files are multiplied by 32.
 * In 11 of the 15 HS-ERGB test sequences, the event stream ends before the last frames.
-  Anchors whose target frames have no events are skipped during evaluation.
+  Target frames without events should be excluded.
 
 ### 2. Download pretrained weights
 
@@ -114,28 +114,6 @@ Make sure the final structure is:
 │   │   ├── latent_tokenizer.pth
 │   │   ├── er_vae.pt
 ```
-
-### 3. Run test scripts
-
-```bash
-    $ bash scripts/evaluate.sh bs_ergb      # 1 and 3 frames
-    $ bash scripts/evaluate.sh hs_ergb      # 7 frames
-    $ bash scripts/evaluate.sh gopro        # 7 and 15 frames
-```
-
-For interpolation, set `TASK=vfi` and point `CKPT` to the VFI weights:
-
-```bash
-    $ TASK=vfi CKPT=checkpoints/evfra_vfi bash scripts/evaluate.sh bs_ergb
-```
-
-For each anchor frame `t`, frames `t+1, ..., t+N` are predicted from frame `t` and the events since `t`, and the next
-anchor is `t+N+1`. Frames are upsampled 2x, predicted in overlapping 512x320 patches, merged by a weighted average, and
-resized back to the original resolution. PSNR / SSIM / LPIPS are averaged over all predicted frames, and anchor frames are not counted.
-
-Predicted frames and per-frame metrics are saved in `./results/<dataset>_<N>frames/`.
-By evaluating the output images, you can reproduce the quantitative results reported in the paper.
-
 
 ## 🚀 Train model on BS-ERGB
 
@@ -156,7 +134,6 @@ of the previous phase, which is selected by the validation LPIPS.
     $ bash scripts/train.sh phase3
 ```
 
-
 ### 3. Interpolation
 
 The VFI model is fine-tuned from the VFP model with a forward and a backward branch that share all weights.
@@ -166,7 +143,7 @@ Both residuals are supervised, and the pixel losses are applied to the blended f
     $ bash scripts/train.sh vfi
 ```
 
-To export a checkpoint in the layout used by the test scripts:
+To export a checkpoint in the release layout:
 
 ```bash
     $ python tools/export_checkpoint.py --checkpoint_dir experiments/phase3/checkpoint-best \

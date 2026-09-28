@@ -1,5 +1,5 @@
 """
-Packs a training checkpoint into the release layout used by evaluate.py:
+Packs a training checkpoint into the release layout:
 
     <output_dir>/controlnet/           EMA ControlNet weights
     <output_dir>/latent_tokenizer.pth

@@ -123,7 +123,7 @@ class EvFRAPipeline:
         image: PIL.Image.Image,
         event_stack: torch.Tensor,
         event_frame: Optional[torch.Tensor] = None,
-        num_inference_steps: int = 25,
+        num_inference_steps: int = 5,
         guidance_scale: float = 3.0,
         noise_aug_strength: float = 0.02,
         use_event_prior: bool = True,
