@@ -156,13 +156,6 @@ of the previous phase, which is selected by the validation LPIPS.
     $ bash scripts/train.sh phase3
 ```
 
-| Phase | Initialization of the residual latent | Loss | LR | Steps |
-|---|---|---|---|---|
-| 1 | Gaussian noise | EDM MSE + LPIPS + L1 | 2e-5 | 100k |
-| 2 | ER-VAE event latent + noise | EDM MSE + LPIPS + L1 | 1e-5 | 80k |
-| 3 | ER-VAE event latent + noise | EDM MSE + LPIPS + L1 + 0.5 event-weighted L1 | 5e-6 | 35k |
-
-The released VFP model is the `checkpoint-best` of phase 3.
 
 ### 3. Interpolation
 
