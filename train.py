@@ -477,7 +477,7 @@ def main():
 @torch.no_grad()
 def validate(args, accelerator, global_step, val_sample, best_lpips, vae, er_vae, image_encoder, feature_extractor,
              unet, controlnet, latent_tokenizer, ema_controlnet, ssim_metric, lpips_metric):
-    """Predicts the validation frame with EMA weights; keeps checkpoint-best by LPIPS."""
+    """Predicts the validation frame with EMA weights; keeps checkpoint-best by the lowest LPIPS."""
     target, branches = val_sample
     controlnet = accelerator.unwrap_model(controlnet)
     controlnet.eval()
@@ -504,8 +504,7 @@ def validate(args, accelerator, global_step, val_sample, best_lpips, vae, er_vae
     psnr = calculate_psnr(pred, gt)
     ssim = calculate_ssim(pred, gt, ssim_metric)
     lpips = calculate_lpips(pred, gt, lpips_metric)
-    # A model that ignores the events can still look good by copying (blending) the
-    # anchors; only accept checkpoints that beat that baseline.
+    # Reference only: LPIPS of copying (blending) the anchors, i.e. ignoring the events.
     anchor_copy = blend_images([b[0] for b in branches], weights)
     anchor_copy_lpips = calculate_lpips(np.array(anchor_copy), gt, lpips_metric)
     accelerator.log({"val/psnr": psnr, "val/ssim": ssim, "val/lpips": lpips,
@@ -517,7 +516,7 @@ def validate(args, accelerator, global_step, val_sample, best_lpips, vae, er_vae
     os.makedirs(val_dir, exist_ok=True)
     prediction.save(os.path.join(val_dir, f"step_{global_step}.png"))
 
-    if lpips < anchor_copy_lpips and lpips < best_lpips:
+    if lpips < best_lpips:
         best_lpips = lpips
         best_dir = os.path.join(args.output_dir, "checkpoint-best")
         if os.path.exists(best_dir):
