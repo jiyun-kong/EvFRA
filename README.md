@@ -55,8 +55,15 @@ If Stable Diffusion 2.1 is not available from the Hub in your environment, pass 
 
 * **BS-ERGB**: download from the official [TimeLens++ repository](https://github.com/uzh-rpg/timelens-pp).
 * **HS-ERGB**: download from the official [TimeLens repository](https://github.com/uzh-rpg/rpg_timelens).
-* **GoPro**: download "GoPro with raw events" from the [EFNet repository](https://github.com/AHupuJR/EFNet)
-  (Event-based Fusion for Motion Deblurring with Cross-modal Attention, ECCV'22).
+* **GoPro**: download the 240 fps frames `GOPRO_Large_all` from the [GoPro dataset](https://seungjunnah.github.io/Datasets/gopro)
+  and "GoPro with raw events" from the [EFNet repository](https://github.com/AHupuJR/EFNet)
+  (Event-based Fusion for Motion Deblurring with Cross-modal Attention, ECCV'22), then pair each 240 fps frame
+  interval with its events:
+
+  ```bash
+      $ python tools/convert_gopro.py --frames_root GOPRO_Large_all/test \
+          --events_root GOPRO_rawevents/test --output_root data/gopro/test
+  ```
 
 Place the datasets in `./data` with the following structure.
 The events between frame `i` and frame `i+1` are stored in `i.npz`.
@@ -83,7 +90,7 @@ The events between frame `i` and frame `i+1` are stored in `i.npz`.
 │   │   │   ├── ...
 │   │   ├── far/test/
 │   ├── gopro/
-│   │   ├── test_converted/
+│   │   ├── test/
 │   │   │   ├── GOPR0384_11_00/
 │   │   │   │   ├── images/
 │   │   │   │   ├── events/             # x, y, timestamp, polarity
@@ -96,6 +103,10 @@ Events are converted on the fly into a 10-level multi-scale event stack (`evfra/
 * The x, y coordinates of the raw BS-ERGB event files are multiplied by 32.
 * In 11 of the 15 HS-ERGB test sequences, the event stream ends before the last frames.
   Target frames without events should be excluded.
+* In 10 of the 15 HS-ERGB test sequences, `i.npz` holds the events between frames `i-1` and `i` instead of `i` and `i+1`:
+  `baloon_popping`, `confetti`, `fountain_schaffhauserplatz_02`, `spinning_plate`, `spinning_umbrella`,
+  `water_bomb_floor_01` (close) and `bridge_lake_01`, `bridge_lake_03`, `lake_01`, `lake_03` (far).
+  Use `(i+1).npz` for the interval `(i, i+1)` in these sequences. The shift can be checked against `images_corrected/timestamp.txt`.
 
 ### 2. Download pretrained weights
 

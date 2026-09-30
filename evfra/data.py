@@ -22,7 +22,7 @@ def list_sequences(dataset, root):
     Test sequences as (name, image_folder, event_folder).
       bs_ergb: <root>/test/<seq>
       hs_ergb: <root>/{close,far}/test/<seq>   (named close/<seq>, far/<seq>)
-      gopro  : <root>/test_converted/<seq>
+      gopro  : <root>/test/<seq>   (built with tools/convert_gopro.py)
     """
     cfg = DATASETS[dataset]
     if dataset == "bs_ergb":
@@ -30,7 +30,7 @@ def list_sequences(dataset, root):
     elif dataset == "hs_ergb":
         splits = [(f"{c}/", os.path.join(root, c, "test")) for c in ("close", "far")]
     else:
-        splits = [("", os.path.join(root, "test_converted"))]
+        splits = [("", os.path.join(root, "test"))]
 
     sequences = []
     for prefix, split_dir in splits:

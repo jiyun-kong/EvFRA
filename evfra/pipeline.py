@@ -16,9 +16,9 @@ SIGMA_MAX = 3.0
 SIGMA_MIN = 0.05
 
 
-def edm_sigmas(num_steps, device):
-    """Log-uniform sigma schedule from SIGMA_MAX to SIGMA_MIN."""
-    return torch.exp(torch.linspace(np.log(SIGMA_MAX), np.log(SIGMA_MIN), num_steps, device=device, dtype=torch.float32))
+def edm_sigmas(num_steps, device, sigma_max=SIGMA_MAX):
+    """Log-uniform sigma schedule from sigma_max to SIGMA_MIN."""
+    return torch.exp(torch.linspace(np.log(sigma_max), np.log(SIGMA_MIN), num_steps, device=device, dtype=torch.float32))
 
 
 def edm_denoise(model_pred, noisy, sigma):
@@ -128,6 +128,7 @@ class EvFRAPipeline:
         noise_aug_strength: float = 0.02,
         use_event_prior: bool = True,
         prior_alpha: float = 1.0,
+        sigma_start: Optional[float] = 0.1,
         generator: Optional[torch.Generator] = None,
     ) -> PIL.Image.Image:
         """
@@ -136,6 +137,9 @@ class EvFRAPipeline:
             event_stack: (NUM_STACKS, H, W) multi-scale event stack in [-1, 1].
             event_frame: (1, 3, H, W) ER-VAE input, see `evfra.events.er_vae_input`.
             prior_alpha: blend between the event prior (1.0) and noise at sigma_max (0.0).
+            sigma_start: the event prior is perturbed with noise of this level and denoised from
+                sigma_start down to SIGMA_MIN. None starts from the prior as is with the full schedule
+                from SIGMA_MAX. With num_inference_steps=0 the prior is decoded directly.
         """
         height, width = event_stack.shape[-2:]
         do_cfg = guidance_scale > 1
@@ -156,14 +160,19 @@ class EvFRAPipeline:
         if needs_upcasting:
             self.vae.to(dtype=torch.float16)
 
-        sigmas = edm_sigmas(num_inference_steps, self.device)
+        sigmas = edm_sigmas(num_inference_steps, self.device, sigma_start or SIGMA_MAX)
         timesteps = 0.25 * torch.log(sigmas)
 
         if use_event_prior:
             prior = self.encode_event_prior(event_frame, embeddings.dtype)
             noise = torch.randn(prior.shape, generator=generator, device=self.device, dtype=prior.dtype) \
                 if generator is not None else torch.randn_like(prior)
-            latents = prior * prior_alpha + noise * sigmas[0].item() * (1.0 - prior_alpha)
+            if sigma_start is not None:
+                latents = prior + noise * sigma_start
+            else:
+                latents = prior * prior_alpha + noise * SIGMA_MAX * (1.0 - prior_alpha)
+            if num_inference_steps == 0:
+                latents = prior
         else:
             shape = (1, 4, height // self.vae_scale_factor, width // self.vae_scale_factor)
             latents = randn_tensor(shape, generator=generator, device=self.device, dtype=embeddings.dtype) * sigmas[0]
