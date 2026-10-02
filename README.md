@@ -65,10 +65,6 @@ If Stable Diffusion 2.1 is not available from the Hub in your environment, pass 
           --events_root GOPRO_rawevents/test --output_root data/gopro/test
   ```
 
-  The EFNet release keeps only one sharp frame per blurry image (one in every 11 frames at 240 fps), so the frames are
-  taken from `GOPRO_Large_all`. The EFNet events place 240 fps frame `k` at `k/240` s, and the events between frames
-  `k` and `k+1` are saved as `k.npz`.
-
 Place the datasets in `./data` with the following structure.
 The events between frame `i` and frame `i+1` are stored in `i.npz`.
 
